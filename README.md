@@ -1,6 +1,7 @@
-# <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="30" height="30" alt="GitHub"> PromoFetcher
+# PromoFetcher
 
-A powerful tool to automatically check and fetch promotional codes from Microsoft accounts, specifically targeting Xbox Game Pass offers. It includes built-in validation for Discord promo redemption.
+A high-speed asynchronous tool to check Microsoft/Xbox accounts for Game Pass promotions and validate them using Discord's API.
+
 
 ## 🔗 Community & Support
 
@@ -8,53 +9,74 @@ A powerful tool to automatically check and fetch promotional codes from Microsof
 > Join our community regarding updates and support!
 
 - **Telegram:** [t.me/meowleak](https://t.me/meowleak)
+- **Discord:** [https://discord.gg/Rtny54r64g](https://discord.gg/Rtny54r64g)
 
-## ✨ Features
 
-- **Multi-threaded:** Fast processing with configurable thread count (`MAX_THREADS`).
-- **Auto-Login:** Handles Microsoft Live and Xbox authentication flows (User Token, XSTS).
-- **Promo Detection:** Checks for specific Game Pass offer IDs.
-- **Auto-Validation:** Validates found codes against Discord's API to ensure they are active and unused.
-- **Proxy Support:** (Implied/Planned - currently uses direct requests or requires proxy config in requests if added).
-## 📥 Installation
+## Features
+- **Dynamic Offer Fetching**: Automatically loops through all available Game Pass perks instead of relying on a single hardcoded offer ID. Prevents the script from breaking when Xbox updates their promotional campaigns.
+- **Claimed Promo Recovery**: Safely extracts Discord promo links even from accounts where the promo was already previously "claimed" or generated.
+- **Fast Checking**: Uses multi-threading (up to 100 threads) for rapid account processing.
+- **Xbox Authentication**:  Handles full authentication flow for Xbox Live services.
+- **Promo Validation**: Automatically verifies found promo codes against Discord's entitlement API (checks claims, max claims, and expiration limits).
+- **Live Stats**: Real-time console title updates showing progress.
 
-### Clone the Repository
+## Prerequisites
+- Python 3.x
+- `curl_cffi`
+- `colorama`
 
-```bash
-git clone https://github.com/RivanSoul/PromoFetcher.git
-cd PromoFetcher
-```
+## Installation
 
-### Install Dependencies
-
-```bash
-pip install requests colorama urllib3
-```
-
-## 🚀 Usage
-
-1. **Setup Accounts:**
-   Add your Microsoft accounts to `accs.txt` in the format:
-   ```
-   email:password
-   email:password
+1. Install the required Python packages:
+   ```bash
+   pip install -r requirements.txt
    ```
 
-2. **Configure Token:**
-   Open `main.py` and replace `YOUR_DISCORD_TOKEN_HERE` with your actual Discord user token to enable code validation.
+## Configuration
 
-3. **Run:**
+### Discord Token Setup
+**IMPORTANT**: You must use your own Discord token for promo validation to work. The validation uses the Discord API to check if a promo code is still valid, claimed, or expired.
+
+1. Open `main.py` in a text editor
+2. Find line 30 where `DISCORD_TOKEN` is defined
+3. Replace the existing token with your own Discord token:
+   ```python
+   DISCORD_TOKEN = "YOUR_DISCORD_TOKEN_HERE"
+   ```
+
+To get your Discord token:
+- Open Discord in your browser
+- Press `F12` to open Developer Tools
+- Go to the `Console` tab
+- Type: `(webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken()`
+- Copy the token (without quotes)
+
+> [!WARNING]
+> Never share your Discord token with anyone. Keep it private and secure.
+
+## Usage
+
+1. **Prepare Accounts**:
+   Add your Microsoft accounts to a file named `accs.txt` in the same directory. The format must be:
+   ```text
+   email:password
+   email2:password
+   ```
+
+2. **Run the Script**:
    ```bash
    python main.py
    ```
 
-4. **Results:**
-   - Working promos are saved to `promos.txt`.
-   - Live stats are displayed in the console title.
+3. **Output**:
+   - Working promos are printed to the console and saved to `promos.txt` automatically.
+   - The file format for saved promos includes usage stats and expiry information.
 
-## ⚠️ Disclaimer
-This tool is for educational purposes only. Use it responsibly and at your own risk.
+## Advanced Tweaks
+- You can adjust `MAX_THREADS` in `main.py` (Default: 100) to suit your system's capabilities or prevent rate-limits on your network.
+
+## Disclaimer
+This tool is for educational purposes only. Use responsibly.
 
 ---
-
-Modify with ❤️ by RivanSoul  
+Modify with ❤️ by RivanSoul
