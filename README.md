@@ -9,7 +9,7 @@ A high-speed asynchronous tool to check Microsoft/Xbox accounts for Game Pass pr
 > Join our community regarding updates and support!
 
 - **Telegram:** [t.me/meowleak](https://t.me/meowleak)
-- **Discord:** [https://discord.gg/Rtny54r64g](https://discord.gg/Rtny54r64g)
+- **Discord:** [https://discord.gg/v9VzbtCRMZ](https://discord.gg/v9VzbtCRMZ)
 
 
 ## Features
